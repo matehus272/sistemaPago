@@ -1,0 +1,75 @@
+php artisan make:migration crear_tabla_nombre --create=nombre
+php artisan migrate:refresh
+php artisan migrate:reset 
+C:\xampp\htdocs\ejercicio1
+
+
+catalog 
+
+
+pedido
+       $table->increments('id');
+            $table->string('fechapedido');
+            $table->integer('tiempo');
+            
+
+            $table->integer('idcliente')->unsigned();
+            $table->integer('idencagado')->unsigned();
+            $table->string('estado');
+            $table->integer('idcoordenada')->unsigned();
+            $table->integer('idrepartidor')->unsigned();
+
+            $table->foreign('idcliente')->references('id')->on('cliente')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('idencagado')->references('id')->on('encargado')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('idcoordenada')->references('id')->on('coordenada')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('idrepartidor')->references('id')->on('repartidor')->onDelete('cascade')->onUpdate('cascade');
+
+            $table->timestamps();
+            $table->softDeletes();
+
+
+pedido model
+
+
+   public function inPedidoProducto(){
+            return $this->hasMany('sisServicio\PedidoProducto');
+        }
+
+        public function productos(){
+            return $this->belongsToMany('sisServicio\Producto','pedidoproducto');
+        }
+
+public function cantidadProducto(){
+        return $this->id;//producto()->count() id
+    }
+
+    public static function findOrCreateBySessionID($idpedido){
+        if ($idpedido) {
+            //buscar el pedido de compras con este id
+            return Pedido::findBySession($idpedido);
+        }else{
+            // Crear un carrito de pedido
+            return Pedido::createWithoutSession();
+        }
+    }
+
+    public static function findBySession($idpedido){
+        return Pedido::find($idpedido);
+    }
+
+    public static function createWithoutSession(){
+        $pedido=new Pedido;
+        $pedido->idcliente=Auth::User()->id;
+        $pedido->estado="incompleto";
+        $copia=$pedido;
+        $pedido->save();
+        \Session::flash('idpedido',$copia);
+        return $copia;
+            
+          
+             /*   return Pedido::create([
+                    "idcliente"=>Auth::User()->id,
+                    "estado"=>"incompleto"      
+                   ]);
+            */
+    }
